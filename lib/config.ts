@@ -13,7 +13,6 @@ export const STARTER_PROMPTS: StartScreenPrompt[] = [
   },
 ];
 
-
 export const PLACEHOLDER_INPUT = "Ask anything...";
 
 export const GREETING = "How can I help you today?";
