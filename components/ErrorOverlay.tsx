@@ -1,44 +1,53 @@
 "use client";
+import React, { ReactNode, ErrorInfo } from "react";
 
-import type { ReactNode } from "react";
+interface Props {
+  children: ReactNode;
+}
 
-type ErrorOverlayProps = {
-  error: string | null;
-  fallbackMessage?: ReactNode;
-  onRetry?: (() => void) | null;
-  retryLabel?: string;
-};
+interface State {
+  hasError: boolean;
+  message?: string;
+}
 
-export function ErrorOverlay({
-  error,
-  fallbackMessage,
-  onRetry,
-  retryLabel,
-}: ErrorOverlayProps) {
-  if (!error && !fallbackMessage) {
-    return null;
+export default class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, message: undefined };
   }
 
-  const content = error ?? fallbackMessage;
-
-  if (!content) {
-    return null;
+  static getDerivedStateFromError(error: unknown): State {
+    let message = "Unknown error";
+    if (error instanceof Error) message = error.message;
+    else if (typeof error === "string") message = error;
+    return { hasError: true, message };
   }
 
-  return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex h-full w-full flex-col justify-center rounded-[inherit] bg-white/85 p-6 text-center backdrop-blur dark:bg-slate-900/90">
-      <div className="pointer-events-auto mx-auto w-full max-w-md rounded-xl bg-white px-6 py-4 text-lg font-medium text-slate-700 dark:bg-transparent dark:text-slate-100">
-        <div>{content}</div>
-        {error && onRetry ? (
-          <button
-            type="button"
-            className="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-none transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-            onClick={onRetry}
-          >
-            {retryLabel ?? "Restart chat"}
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
+  componentDidCatch(error: unknown, info: ErrorInfo): void {
+    console.error("App render error:", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            direction: "rtl",
+            padding: 16,
+            border: "1px solid #f99",
+            borderRadius: 8,
+            margin: 16,
+            color: "#222",
+            background: "#fff",
+          }}
+        >
+          <b>⚠️ خطا هنگام نمایش چت:</b>
+          <div style={{ whiteSpace: "pre-wrap", marginTop: 8 }}>
+            {this.state.message}
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
